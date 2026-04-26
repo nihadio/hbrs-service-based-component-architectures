@@ -1,109 +1,136 @@
 package org.hbrs.seka.uebung1.test;
 
+import org.hbrs.seka.uebung1.Caching;
+import org.hbrs.seka.uebung1.DatabaseConnection;
+import org.hbrs.seka.uebung1.ProductManagement;
+import org.hbrs.seka.uebung1.HashMapCaching;
+import org.hbrs.seka.uebung1.entities.Product;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
-import java.sql.ResultSet;
-
-// Internal Packages
-import org.hbrs.seka.uebung1.entities.Product;
-import org.hbrs.seka.uebung1.DatabaseConnection;
-
-
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ConnectionTest {
 
-    private Connection connection;
+	private Connection connection;
 
-    @BeforeEach
-    public void setup()  {
-        DatabaseConnection databaseConnection = new DatabaseConnection();
-        try {
-            connection = databaseConnection.getConnection();
+	@BeforeEach
+	public void setup() {
+		try {
+			connection = DatabaseConnection.getConnection();
 
-            String sql = "CREATE TABLE IF NOT EXISTS products ("
-                + "id INT PRIMARY KEY AUTO_INCREMENT, "
-                + "name VARCHAR(255) NOT NULL, "
-                + "price DOUBLE NOT NULL)";
+			String sql = "CREATE TABLE IF NOT EXISTS products ("
+					+ "id INT PRIMARY KEY AUTO_INCREMENT, "
+					+ "name VARCHAR(255) NOT NULL, "
+					+ "price DOUBLE NOT NULL)";
 
-            Statement stmt = connection.createStatement();
-            stmt.execute(sql);
-            System.out.println("Table created successfully.");
+			Statement stmt = connection.createStatement();
+			stmt.execute(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
+	@AfterEach
+	public void cleanup() {
+		try {
+			connection.createStatement().execute("DROP TABLE IF EXISTS products");
+			connection.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 
-    @Test
-    public void roundTrip() {
-        // Erzeugung eines neuen Produkts (CREATE)
-        Product productTarget = insertProduct();
+	// Originaler Round-Trip-Test direkt via JDBC
+	@Test
+	public void roundTrip() {
+		Product productTarget = insertProduct();
 
-        // Lesen des Produkts aus der Datenbank (READ)
-        List<Product> products = readProducts();
-        Product productActual = products.get(0);
+		List<Product> products = readProducts();
+		Product productActual = products.get(0);
 
-        // Vergleich des Produkts mit dem erwarteten Produkt (Assertion)
-        assertEquals(productTarget, productActual);
-    }
+		assertEquals(productTarget, productActual);
+	}
 
-    @AfterEach
-    public void deleteSuff() {
-        // SQL für die Löschung der Tabelle (Vermeidung von Datenmüll)
-        // String sql = "DROP TABLE products"; --> ToDo bei Ihnen ;-)
-        try {
-            // Diese Verbindung könnte im Rahmen der Übung Nr. 1 auch über die Methode closeConnection() geschlossen werden
-            // (vgl. Interface ProductManagementInt)
-            this.connection.close();
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-        }
-    }
+	// Round-Trip-Test via Komponente (Port)
+	@Test
+	public void roundTripViaComponent() {
+		ProductManagement pm = new ProductManagement();
+		pm.setCaching(new HashMapCaching<>());
+		pm.openSession();
 
-    private List<Product> readProducts() {
-        List<Product> products = new ArrayList<>();
-        String sql = "SELECT * FROM products";
+		Product expected = new Product(0, "Motor 2.0", 250.0);
+		pm.saveProduct(expected);
 
-        try {
-            PreparedStatement pstmt = this.connection.prepareStatement(sql);
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                products.add(new Product(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getDouble("price")
-                ));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return products;
-    }
+		List<Product> results = pm.getProductByName("Motor");
+		assertEquals(1, results.size());
+		assertEquals(expected, results.get(0));
 
-    private Product insertProduct() {
-        String sql1 = "INSERT INTO products (name, price) VALUES (?, ?)";
-        Product productTarget = new Product(1, "My Motor 1.0", 100.0);
+		pm.closeSession();
+	}
 
-        try {
-            PreparedStatement pstmt = this.connection.prepareStatement(sql1);
-            pstmt.setString(1, productTarget.getName());
-            pstmt.setDouble(2, productTarget.getPrice());
-            pstmt.executeUpdate();
-            System.out.println("Product inserted successfully.");
-        } catch (SQLException e2) {
-            e2.printStackTrace();
-        }
+	// Prüft, ob das Caching funktioniert: zweiter Aufruf kommt aus dem Cache
+	@Test
+	public void cacheIsUsedOnSecondCall() {
+		ProductManagement pm = new ProductManagement();
+		Caching<Product> cache = new HashMapCaching<>();
+		pm.setCaching(cache);
+		pm.openSession();
 
-        return productTarget;
-    }
+		pm.saveProduct(new Product(0, "Getriebe", 500.0));
+
+		pm.getProductByName("Getriebe"); // füllt den Cache
+		assertTrue(cache.isCached("Getriebe"));
+
+		List<Product> cachedResult = pm.getProductByName("Getriebe"); // aus dem Cache
+		assertEquals(1, cachedResult.size());
+		assertEquals("Getriebe", cachedResult.get(0).getName());
+
+		pm.closeSession();
+	}
+
+	private List<Product> readProducts() {
+		List<Product> products = new ArrayList<>();
+		String sql = "SELECT * FROM products";
+
+		try {
+			PreparedStatement pstmt = this.connection.prepareStatement(sql);
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				products.add(new Product(
+						rs.getInt("id"),
+						rs.getString("name"),
+						rs.getDouble("price")));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return products;
+	}
+
+	private Product insertProduct() {
+		String sql = "INSERT INTO products (name, price) VALUES (?, ?)";
+		Product productTarget = new Product(1, "My Motor 1.0", 100.0);
+
+		try {
+			PreparedStatement pstmt = this.connection.prepareStatement(sql);
+			pstmt.setString(1, productTarget.getName());
+			pstmt.setDouble(2, productTarget.getPrice());
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return productTarget;
+	}
 }
