@@ -69,3 +69,9 @@ Der externe Client wirft beim ersten Datenbankzugriff eine `ClassNotFoundExcepti
 ```bash
 cd client && mvn compile exec:java -Dexec.mainClass="org.hbrs.seka.client.Client"
 ```
+
+---
+
+## R1 – UML-Diagramme
+
+Die Diagramme liegen unter `docs/uml/`.

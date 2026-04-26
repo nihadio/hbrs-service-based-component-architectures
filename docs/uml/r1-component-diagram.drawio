@@ -1,0 +1,61 @@
+<mxfile host="65bd71144e">
+    <diagram id="r1-component" name="R1 Component Diagram">
+        <mxGraphModel dx="1211" dy="797" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="10" value="External Client" style="shape=component;align=left;spacingLeft=36;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="255" y="300" width="220" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="&lt;&lt;artifact&gt;&gt;&#xa;ProductManagement.jar" style="swimlane;fontStyle=1;align=center;startSize=50;whiteSpace=wrap;overflow=hidden;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="270" width="290" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="11a" value="ProductManagement (Port)&#xa;ProductController&#xa;ProductRepository&#xa;DatabaseConnection&#xa;HashMapCaching&lt;V&gt;&#xa;NoOpCaching&lt;V&gt;&#xa;Logger" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=10;spacingRight=4;overflow=hidden;rotatable=0;" parent="11" vertex="1">
+                    <mxGeometry y="50" width="290" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="&lt;&lt;database&gt;&gt;&#xa;H2 Database" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="860" y="110" width="180" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="Console / Log Sink" style="shape=component;align=left;spacingLeft=36;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="960" y="380" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="ProductManagementInt" style="shape=mxgraph.uml.lollipop;direction=W;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="290" y="460" width="150" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="Caching&lt;Product&gt;" style="shape=mxgraph.uml.req_interface;direction=N;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="140" width="70" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="JDBC" style="shape=mxgraph.uml.req_interface;direction=E;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="290" width="70" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="&lt;&lt;cross-cutting&gt;&gt;&#xa;Logging" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;overflow=hidden;" parent="1" vertex="1">
+                    <mxGeometry x="875" y="470" width="80" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="" style="endArrow=open;endFill=0;html=1;" parent="1" source="10" target="20" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;" parent="1" source="20" target="11" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="injects via setCaching()" style="endArrow=open;dashed=1;endFill=0;html=1;" parent="1" source="10" target="21" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="" style="endArrow=none;html=1;" parent="1" source="21" target="11" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="" style="endArrow=open;endFill=0;html=1;" parent="1" source="11" target="22" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="" style="endArrow=open;endFill=0;html=1;" parent="1" source="22" target="13" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" value="" style="endArrow=open;dashed=1;endFill=0;html=1;" parent="1" source="11" target="23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="" style="endArrow=open;endFill=0;html=1;" parent="1" source="23" target="14" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
