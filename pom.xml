@@ -38,11 +38,20 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <!-- Build configuration. Hier sollte noch ein Plugin für
-     das Packaging hinzugefügt werden. Das Standard-Plugin von Maven
-     fügt leider kein Abhängigkeiten hinzu. Bitte gerne nach Alternativen suchen.
-     ChatGPT liefert hier gute Beispiele (denkbares Prompt: How can I include a jar-File
-     into a jar file when using maven? :-)-->
-
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>shade</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
